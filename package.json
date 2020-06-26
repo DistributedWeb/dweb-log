@@ -1,10 +1,10 @@
 {
   "name": "dweb-log",
   "description": "Library for displaying a log of changes to a dWebFS",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Joe Hand <joe@hand.email>",
   "bugs": {
-    "url": "https://github.com/joehand/dat-log/issues"
+    "url": "https://github.com/joehand/dweb-log/issues"
   },
   "devDependencies": {
     "standard": "*"
@@ -13,21 +13,21 @@
   "bin": {
     "dweb-log": "./cli.js"
   },
-  "homepage": "https://github.com/joehand/dat-log",
+  "homepage": "https://github.com/joehand/dweb-log",
   "keywords": [
-    "dat",
-    "hyperdrive"
+    "dweb",
+    "dwebfs"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/joehand/dat-log.git"
+    "url": "https://github.com/joehand/dweb-log.git"
   },
   "scripts": {
     "test": "standard"
   },
   "dependencies": {
-    "dweb-core": "^1.0.0",
+    "dwebs-core": "^1.0.0",
     "minimist": "^1.2.0",
     "neat-log": "^2.4.0",
     "prettier-bytes": "^1.0.4",

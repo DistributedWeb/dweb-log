@@ -2,11 +2,11 @@ var fs = require('fs')
 var prettyBytes = require('prettier-bytes')
 var neatLog = require('neat-log')
 var output = require('neat-log/output')
-var Dat = require('dat-node')
+var DWeb = require('dwebs-core')
 var ram = require('random-access-memory')
 
 module.exports = function (opts) {
-  var usage = 'Usage: dat-log [key|dir] [--live,-l]'
+  var usage = 'Usage: dweb-log [key|dir] [--live,-l]'
   if (opts.help) {
     console.error(usage)
     process.exit()
@@ -29,10 +29,10 @@ module.exports = function (opts) {
       dir = process.cwd()
     }
 
-    Dat(dir, state.opts, function (err, dat) {
+    DWeb(dir, state.opts, function (err, dweb) {
       if (err && err.name === 'MissingError') {
         bus.clear()
-        console.error('No dat found in', dir)
+        console.error('No dweb found in', dir)
         console.error('')
         console.error(usage)
         process.exit(1)
@@ -41,18 +41,18 @@ module.exports = function (opts) {
         process.exit(1)
       }
 
-      state.dat = dat
+      state.dweb = dweb
       state.log = []
       state.puts = 0
       state.dels = 0
       bus.on('update', function () {
-        state.verLen = state.dat.archive.version.toString().length
+        state.verLen = state.dweb.archive.version.toString().length
         state.zeros = new Array(state.verLen).join('0')
       })
       bus.emit('render')
 
-      dat.trackStats()
-      if (dat.writable) {
+      dweb.trackStats()
+      if (dweb.writable) {
         bus.emit('update')
         return run()
       }
@@ -60,18 +60,18 @@ module.exports = function (opts) {
       // var waitTimeout TODO
       state.offline = true
 
-      dat.joinNetwork(function () {
-        if (!state.opts.live && state.offline && !dat.network.connecting) exit()
+      dweb.joinNetwork(function () {
+        if (!state.opts.live && state.offline && !dweb.network.connecting) exit()
       }).once('connection', function () {
         state.offline = false
         // clearTimeout(waitTimeout) // TODO: close if not live
       })
-      dat.archive.ready(function () {
+      dweb.archive.ready(function () {
         bus.emit('update')
       })
-      dat.archive.on('content', function () {
+      dweb.archive.on('content', function () {
         bus.emit('update')
-        dat.archive.content.update()
+        dweb.archive.content.update()
       })
 
       if (!state.opts.live) {
@@ -80,11 +80,11 @@ module.exports = function (opts) {
       }
 
       if (!state.opts.key) run()
-      else dat.archive.metadata.update(run)
+      else dweb.archive.metadata.update(run)
 
       function run () {
         state.running = true
-        var rs = dat.archive.history({ live: state.opts.live || state.offline })
+        var rs = dweb.archive.history({ live: state.opts.live || state.offline })
         rs.on('data', function (data) {
           var version = `${state.zeros.slice(0, state.verLen - data.version.toString().length)}${data.version}`
           var msg = `${version} [${data.type}] ${data.name}`
@@ -110,7 +110,7 @@ module.exports = function (opts) {
   function view (state) {
     if (!state.running) {
       if (state.opts.key) return 'Connecting to network...'
-      return 'Reading dat history...'
+      return 'Reading dweb history...'
     }
     return output(`
       ${state.log.join('\n')}
@@ -120,14 +120,14 @@ module.exports = function (opts) {
       : '...\n\nConnecting to network to update & verify log...'
     : '\nLog synced with network'}
 
-      Archive has ${state.dat.archive.version} changes (puts: +${state.puts}, dels: -${state.dels})
-      Current Size: ${prettyBytes(state.dat.stats.get().byteLength)}
+      Archive has ${state.dweb.archive.version} changes (puts: +${state.puts}, dels: -${state.dels})
+      Current Size: ${prettyBytes(state.dweb.stats.get().byteLength)}
       Total Size:
-      - Metadata ${prettyBytes(state.dat.archive.metadata.byteLength)}
-      - Content ${prettyBytes(state.dat.archive.content.byteLength)}
+      - Metadata ${prettyBytes(state.dweb.archive.metadata.byteLength)}
+      - Content ${prettyBytes(state.dweb.archive.content.byteLength)}
       Blocks:
-      - Metadata ${state.dat.archive.metadata.length}
-      - Content ${state.dat.archive.content.length}
+      - Metadata ${state.dweb.archive.metadata.length}
+      - Content ${state.dweb.archive.content.length}
     `)
   }
 }
